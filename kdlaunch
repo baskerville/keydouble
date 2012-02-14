@@ -21,4 +21,4 @@ END
 
 ./keydouble $NATURAL_KEYCODE $ARTIFICIAL_KEYCODE
 
-restore_keymap
+restore_map

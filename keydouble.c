@@ -1,15 +1,21 @@
 /*
-     __                   __             __    __       
+     __                   __             __    __
     |  |--.-----.--.--.--|  .-----.--.--|  |--|  .-----.
     |    <|  -__|  |  |  _  |  _  |  |  |  _  |  |  -__|
     |__|__|_____|___  |_____|_____|_____|_____|__|_____|
-                |_____|                                 
+                |_____|
 
     baskerville at lavabit dot com
 
+    Refs: https://github.com/r0adrunner/Space2Ctrl
+          https://github.com/tomykaira/pianistic
 */
 
+#define _BSD_SOURCE
 #define ARTIFICIAL_TIMEOUT 600
+#define SLEEP_MICROSEC 1000
+
+enum {False = 0, True = 1};
 
 #include <X11/Xlibint.h>
 #include <X11/keysym.h>
@@ -20,22 +26,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <signal.h>
+#include <unistd.h>
 
 static void setup(void);
-static void launch(void);
+static void loop(void);
+static void stop(int signum);
 static void evtcallback(XPointer priv, XRecordInterceptData *hook);
-static int deltamsec(struct timeval t1, struct timeval t2);
 static void die(const char *errstr, ...); 
+static int deltamsec(struct timeval t1, struct timeval t2);
 
 static Display *ctldpy, *datdpy;
+static XRecordContext reccontext;
 static XRecordRange *recrange;
 static XRecordClientSpec reccspec;
-static XRecordContext reccontext;
 
-// natural and artificial keycodes
+/* natural and artificial keycodes */
 static int natcode, artcode;
+static int running = True;
 
-// from libxnee
+/* from libxnee */
 typedef union {
     unsigned char type;
     xEvent event;
@@ -47,12 +57,12 @@ typedef union {
 
 void
 setup(void) {
+    int event, error, major, minor;
+
     if (!(ctldpy = XOpenDisplay(NULL)) || !(datdpy = XOpenDisplay(NULL)))
         die("cannot open display\n");
 
-    XSynchronize(ctldpy, True); // don't remove this line
-
-    int event, error, major, minor;
+    XSynchronize(ctldpy, True); /* don't remove this line */
 
     if (!XTestQueryExtension(ctldpy, &event, &error, &major, &minor))
         die("the xtest extension is not loaded\n");
@@ -72,28 +82,32 @@ setup(void) {
 }
 
 void
-launch(void) {
-    XFlush(ctldpy); // don't remove this line
-    if (!XRecordEnableContext(datdpy, reccontext, evtcallback, NULL))
+loop(void) {
+    if (!XRecordEnableContextAsync(datdpy, reccontext, evtcallback, NULL))
         die("cannot enable record context\n");
+    while (running) {
+        XRecordProcessReplies(datdpy);
+        usleep(SLEEP_MICROSEC);
+    }
 }
 
-// called from Xserver when new events occurs
+/* called from Xserver when new events occurs */
 void
 evtcallback(XPointer priv, XRecordInterceptData *hook) {
     if (hook->category != XRecordFromServer) {
         XRecordFreeData(hook);
         return;
     }
+
     XRecordDatum *data = (XRecordDatum *) hook->data;
-    static Bool natdown = False;
-    static Bool keycomb = False; 
+    static int natdown = False;
+    static int keycomb = False; 
     static struct timeval startwait, endwait;
     int code = data->event.u.u.detail;
     int evttype = data->event.u.u.type;
 
     if (evttype == KeyPress) {
-        // natural key pressed
+        /* natural key pressed */
         if (!natdown && code == natcode) {
             natdown = True;
             gettimeofday(&startwait, NULL);
@@ -102,12 +116,12 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
             keycomb = natdown;
     }
     else if (evttype == KeyRelease) {
-        // natural key released
+        /* natural key released */
         if (code == natcode){
             natdown = False;	
             if (!keycomb) {
                 gettimeofday(&endwait, NULL);
-                // if the timeout wasn't reached since natural was pressed
+                /* if the timeout wasn't reached since natural was pressed */
                 if (deltamsec(endwait, startwait) < ARTIFICIAL_TIMEOUT ) {
                     XTestFakeKeyEvent(ctldpy, artcode, True, CurrentTime);
                     XTestFakeKeyEvent(ctldpy, artcode, False, CurrentTime);
@@ -122,7 +136,7 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
     XRecordFreeData(hook);
 }
 
-// from dwm
+/* from dwm */
 void
 die(const char *errstr, ...) {
 	va_list ap;
@@ -138,11 +152,10 @@ deltamsec(struct timeval t1, struct timeval t2) {
              + (t1.tv_usec - t2.tv_usec)) / 1000;
 }
 
-/* void */
-/* stop() { */
-/*     if(!XRecordDisableContext(ctldpy, reccontext)) */
-/*         die("could not disable record context\n"); */
-/* } */
+void
+stop(int signum) {
+    running = False;
+}
 
 int
 main(int argc, char *argv[]) {
@@ -152,7 +165,17 @@ main(int argc, char *argv[]) {
     }
     natcode = atoi(argv[1]);
     artcode = atoi(argv[2]);
+    signal(SIGINT, stop);
+    signal(SIGTERM, stop);
+    signal(SIGHUP, stop);
     setup();
-    launch();
+    loop();
+    if(!XRecordDisableContext(ctldpy, reccontext))
+        die("could not disable record context\n");
+    XRecordFreeContext(ctldpy, reccontext);
+    XFlush(ctldpy);
+    XFree(recrange);
+    XCloseDisplay(datdpy);
+    XCloseDisplay(ctldpy);
     return EXIT_SUCCESS;
 }
