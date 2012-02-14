@@ -4,17 +4,22 @@ This little X utility allows you to use ordinary keys as modifiers while keeping
 
 ## Configuration
 
-You shall edit `kdlaunch`.
+`keydouble` honors a configuration file at `~/.keydoublerc`.
+See `example/keydoublerc`.
 
-The **NATURAL_KEYCODE** variable defines the keycode of the ordinary key (`xev` can be used to obtain this information).
-The **ARTIFICIAL_KEYCODE** variable defines the keycode sent when the ordinary key is not used as a modifier. 
+## Install
 
-`xmodmap` is used to map **NATURAL_KEYCODE** to the modifier keysym and **ARTIFICIAL_KEYCODE** to the ordinary keysym.
-
-## Testing
+Run
 
     make
-    ./kdlaunch
+
+Then copy the executables to your `bin` directory.
+And add
+
+    kdlaunch &
+
+to `~/.xinitrc`.
+
 
 ## Dependencies
 
