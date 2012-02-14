@@ -1,5 +1,5 @@
 CC      = gcc
-CFLAGS  = -std=c99 -Wall -pedantic -O2
+CFLAGS  = -ansi -Wall -O2
 LIBS    = -lX11 -lXtst
 PREFIX  = /usr/local
 
@@ -13,5 +13,5 @@ options:
 	@echo "CFLAGS  = $(CFLAGS)"
 	@echo "PREFIX  = $(PREFIX)"
 
-keydouble: $(SRC)
+keydouble: $(SRC) Makefile
 	$(CC) -o $@ $(SRC) $(CFLAGS) $(LIBS)
