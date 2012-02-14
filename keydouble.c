@@ -72,7 +72,7 @@ setup(void) {
 }
 
 void
-launch() {
+launch(void) {
     XFlush(ctldpy); // don't remove this line
     if (!XRecordEnableContext(datdpy, reccontext, evtcallback, NULL))
         die("cannot enable record context\n");
