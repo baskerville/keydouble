@@ -6,7 +6,12 @@ NATURAL_KEYCODE=65
 ARTIFICIAL_KEYCODE=255
 
 restore_map() {
-    setxkbmap -layout us
+    lyt=$(setxkbmap -query | grep -i '^layout:' | awk '{print $2}')
+    if [ -n "$lyt" ] ; then
+        setxkbmap -layout "$lyt"
+    else
+        printf "couldn't guess the current keyboard layout" >& 2
+    fi
     [ -f "$XMODMAP_CONF" ] && xmodmap "$XMODMAP_CONF"
     exit
 }
