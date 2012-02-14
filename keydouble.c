@@ -126,7 +126,6 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
     else if (evttype == KeyRelease) {
         /* a natural key was released */
         if (natart[code] != CODE_UNDEF) {
-            printf("%d\n", natart[code]);
             natdown[code] = False;	
             if (!keycomb[code]) {
                 gettimeofday(&endwait[code], NULL);
@@ -190,9 +189,6 @@ main(int argc, char *argv[]) {
         natart[i] = CODE_UNDEF;
     for (i = 1; i < argc; i++)
         addpair(argv[i]);
-    for (i = 0; i < MAX_CODE; i++)
-        printf("%d:%d ", i, natart[i]);
-    printf("\n");
     signal(SIGINT, stop);
     signal(SIGTERM, stop);
     signal(SIGHUP, stop);
