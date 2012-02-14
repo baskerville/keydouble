@@ -1,15 +1,15 @@
 #! /bin/dash
 
-KEYMAP_BACKUP="$HOME/.xmodmaprc.bak"
+XMODMAP_CONF="$HOME/.xmodmaprc"
 
 NATURAL_KEYCODE=65
 ARTIFICIAL_KEYCODE=255
 
 restore_map() {
-    xmodmap "$KEYMAP_BACKUP"
+    setxkbmap -layout us
+    [ -f "$XMODMAP_CONF" ] && xmodmap "$XMODMAP_CONF"
+    exit
 }
-
-[ -f "$KEYMAP_BACKUP" ] || xmodmap -pke > "$KEYMAP_BACKUP"
 
 trap restore_map INT
 
@@ -20,3 +20,5 @@ xmodmap - <<- END
 END
 
 ./keydouble $NATURAL_KEYCODE $ARTIFICIAL_KEYCODE
+
+restore_keymap
