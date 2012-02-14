@@ -5,7 +5,7 @@
 keycode 65 = Control_L
 keycode 255 = space
 
-keycode 36 = Mode_switch
+keycode 36 = Hyper_R
 keycode 254 = Return
 
 keycode 23 = Mode_switch
