@@ -130,9 +130,8 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
             keycomb = False;
         } 
     }
-    else if (evttype == ButtonPress) {
+    else if (evttype == ButtonPress)
         keycomb = natdown;
-    }
     XRecordFreeData(hook);
 }
 
