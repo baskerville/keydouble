@@ -13,7 +13,7 @@
 
 #define _BSD_SOURCE
 #define ARTIFICIAL_TIMEOUT 600
-#define SLEEP_MICROSEC 1000
+#define SLEEP_MICROSEC 100*1000
 #define MAX_CODE 256
 #define CODE_UNDEF -1
 #define PAIR_SEP ":"
@@ -104,7 +104,7 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
     }
 
     XRecordDatum *data = (XRecordDatum *) hook->data;
-    static int natdown[MAX_CODE];
+    static int natdown[MAX_CODE], numnat;
     static int keycomb[MAX_CODE]; 
     static struct timeval startwait[MAX_CODE], endwait[MAX_CODE];
 
@@ -115,9 +115,10 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
         /* a natural key was pressed */
         if (!natdown[code] && natart[code] != CODE_UNDEF) {
             natdown[code] = True;
+            numnat++;
             gettimeofday(&startwait[code], NULL);
         } 
-        else {
+        else if (numnat) {
             int i;
             for (i = 0; i < MAX_CODE; i++)
                 keycomb[i] = natdown[i];
@@ -127,6 +128,7 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
         /* a natural key was released */
         if (natart[code] != CODE_UNDEF) {
             natdown[code] = False;	
+            numnat--;
             if (!keycomb[code]) {
                 gettimeofday(&endwait[code], NULL);
                 /* if the timeout wasn't reached since natural was pressed */
@@ -138,7 +140,7 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
             keycomb[code] = False;
         } 
     }
-    else if (evttype == ButtonPress) {
+    else if (evttype == ButtonPress && numnat) {
         int i;
         for (i = 0; i < MAX_CODE; i++)
             keycomb[i] = natdown[i];
