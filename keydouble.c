@@ -14,6 +14,9 @@
 #define _BSD_SOURCE
 #define ARTIFICIAL_TIMEOUT 600
 #define SLEEP_MICROSEC 100*1000
+#define MAX_CODE 256
+#define CODE_UNDEF -1
+#define PAIR_SEP ":"
 
 enum {False = 0, True = 1};
 
@@ -28,6 +31,7 @@ enum {False = 0, True = 1};
 #include <stdarg.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 
 static void setup(void);
 static void loop(void);
@@ -42,7 +46,7 @@ static XRecordRange *recrange;
 static XRecordClientSpec reccspec;
 
 /* natural and artificial keycodes */
-static int natcode, artcode;
+static int natart[MAX_CODE];
 static int running = True;
 
 /* from libxnee */
@@ -100,38 +104,47 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
     }
 
     XRecordDatum *data = (XRecordDatum *) hook->data;
-    static int natdown = False;
-    static int keycomb = False; 
-    static struct timeval startwait, endwait;
+    static int natdown[MAX_CODE], numnat;
+    static int keycomb[MAX_CODE]; 
+    static struct timeval startwait[MAX_CODE], endwait[MAX_CODE];
+
     int code = data->event.u.u.detail;
     int evttype = data->event.u.u.type;
 
     if (evttype == KeyPress) {
-        /* natural key pressed */
-        if (!natdown && code == natcode) {
-            natdown = True;
-            gettimeofday(&startwait, NULL);
+        /* a natural key was pressed */
+        if (!natdown[code] && natart[code] != CODE_UNDEF) {
+            natdown[code] = True;
+            numnat++;
+            gettimeofday(&startwait[code], NULL);
         } 
-        else
-            keycomb = natdown;
+        else if (numnat) {
+            int i;
+            for (i = 0; i < MAX_CODE; i++)
+                keycomb[i] = natdown[i];
+        }
     }
     else if (evttype == KeyRelease) {
-        /* natural key released */
-        if (code == natcode){
-            natdown = False;	
-            if (!keycomb) {
-                gettimeofday(&endwait, NULL);
+        /* a natural key was released */
+        if (natart[code] != CODE_UNDEF) {
+            natdown[code] = False;	
+            numnat--;
+            if (!keycomb[code]) {
+                gettimeofday(&endwait[code], NULL);
                 /* if the timeout wasn't reached since natural was pressed */
-                if (deltamsec(endwait, startwait) < ARTIFICIAL_TIMEOUT ) {
-                    XTestFakeKeyEvent(ctldpy, artcode, True, CurrentTime);
-                    XTestFakeKeyEvent(ctldpy, artcode, False, CurrentTime);
+                if (deltamsec(endwait[code], startwait[code]) < ARTIFICIAL_TIMEOUT ) {
+                    XTestFakeKeyEvent(ctldpy, natart[code], True, CurrentTime);
+                    XTestFakeKeyEvent(ctldpy, natart[code], False, CurrentTime);
                 }
             }
-            keycomb = False;
+            keycomb[code] = False;
         } 
     }
-    else if (evttype == ButtonPress)
-        keycomb = natdown;
+    else if (evttype == ButtonPress && numnat) {
+        int i;
+        for (i = 0; i < MAX_CODE; i++)
+            keycomb[i] = natdown[i];
+    }
     XRecordFreeData(hook);
 }
 
@@ -156,14 +169,28 @@ stop(int signum) {
     running = False;
 }
 
+void
+addpair(char *na) {
+    char *natural, *artificial;
+    int natcode, artcode;
+    if (!(natural = strtok(na, PAIR_SEP)) || !(artificial = strtok(NULL, PAIR_SEP)))
+        die("could not parse natart pair\n");
+    natcode = atoi(natural);
+    artcode = atoi(artificial);
+    natart[natcode] = artcode;
+}
+
 int
 main(int argc, char *argv[]) {
-    if (argc < 3) {
-        printf("usage: keydouble <natural-keycode> <artificial-keycode>\n");
+    int i;
+    if (argc < 2) {
+        printf("usage: keydouble NAT:ART ...\n");
         exit(EXIT_FAILURE);
     }
-    natcode = atoi(argv[1]);
-    artcode = atoi(argv[2]);
+    for (i = 0; i < MAX_CODE; i++)
+        natart[i] = CODE_UNDEF;
+    for (i = 1; i < argc; i++)
+        addpair(argv[i]);
     signal(SIGINT, stop);
     signal(SIGTERM, stop);
     signal(SIGHUP, stop);
