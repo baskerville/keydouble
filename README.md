@@ -14,7 +14,7 @@ The mapping is done by `xmodmap` and the *artificial* keycode generation by `key
 
 ## Configuration
 
-`kdlaunch` honors a configuration file at `~/.keydoublerc` it passes the *natural*:*artificial* pairs of its header to `keydouble`.
+`kdlaunch` honors a configuration file at `~/.keydoublerc` it passes the **natural:artificial** pairs of its header to `keydouble`.
 
 An example configuration file is provided at `example/keydoublerc`.
 
