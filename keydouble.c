@@ -13,7 +13,7 @@
 
 #define _BSD_SOURCE
 #define ARTIFICIAL_TIMEOUT 600
-#define SLEEP_MICROSEC 1000
+#define SLEEP_MICROSEC 100*1000
 
 enum {False = 0, True = 1};
 
