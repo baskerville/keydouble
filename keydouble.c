@@ -133,6 +133,7 @@ evtcallback(XPointer priv, XRecordInterceptData *hook) {
                 gettimeofday(&endwait[code], NULL);
                 /* if the timeout wasn't reached since natural was pressed */
                 if (deltamsec(endwait[code], startwait[code]) < ARTIFICIAL_TIMEOUT ) {
+                    /* we send key Press/Release events for the artificial keycode */
                     XTestFakeKeyEvent(ctldpy, natart[code], True, CurrentTime);
                     XTestFakeKeyEvent(ctldpy, natart[code], False, CurrentTime);
                 }
