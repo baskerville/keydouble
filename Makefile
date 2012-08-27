@@ -15,20 +15,20 @@ options:
 	@echo "PREFIX  = $(PREFIX)"
 
 keydouble: $(SRC) Makefile
-	$(CC) -o "$@" $(SRC) $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $(SRC) $(CFLAGS) $(LIBS)
 
 clean:
 	@echo "cleaning"
-	rm -f $@
+	rm -f keydouble
 
 install: all
 	@echo "installing executable files to $(DESTDIR)$(BINPREFIX)"
-	@install -D -m 755 $@ $(DESTDIR)$(BINPREFIX)/$@
+	@install -D -m 755 keydouble $(DESTDIR)$(BINPREFIX)/keydouble
 	@install -D -m 755 kdlaunch $(DESTDIR)$(BINPREFIX)/kdlaunch
 	@install -D -m 755 kdkill $(DESTDIR)$(BINPREFIX)/kdkill
 
 uninstall:
 	@echo "removing executable files from $(DESTDIR)$(BINPREFIX)"
-	@rm -f $(DESTDIR)$(BINPREFIX)/{$@,kdlaunch,kdkill}
+	@rm -f $(DESTDIR)$(BINPREFIX)/{keydouble,kdlaunch,kdkill}
 
 .PHONY: all options clean install uninstall
