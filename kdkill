@@ -5,5 +5,5 @@ kdpid=$(pgrep -x keydouble)
 if [ -n "$kdpid" ] ; then
     kill -TERM "$kdpid"
 else
-    printf "keydouble is not running\n"
+    printf "%s\n" "keydouble is not running"
 fi

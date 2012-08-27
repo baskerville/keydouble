@@ -4,7 +4,7 @@ XMODMAP_CONF="$HOME/.xmodmaprc"
 KEYDOUBLE_CONF="$HOME/.keydoublerc"
 
 die() {
-    printf "$@" >&2
+    printf "%s\n" "$@" >&2
     exit 1
 }
 
