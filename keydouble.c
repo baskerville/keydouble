@@ -36,7 +36,8 @@ void setup(void);
 void loop(void);
 void stop(int signum);
 void evtcallback(XPointer priv, XRecordInterceptData *hook);
-void die(const char *errstr, ...);int deltamsec(struct timeval t1, struct timeval t2);
+void die(const char *errstr, ...);
+int deltamsec(struct timeval t1, struct timeval t2);
 
 Display *ctldpy, *datdpy;
 XRecordContext reccontext;
@@ -79,7 +80,7 @@ void setup(void)
     recrange->device_events.last = ButtonPress;
     reccspec = XRecordAllClients;
 
-    if (!(reccontext = XRecordCreateContext(ctldpy, 0, &reccspec, 1, &recrange, 1)))
+    if (!(reccontext = XRecordCreateContext(datdpy, 0, &reccspec, 1, &recrange, 1)))
         die("could not create a record context");
 }
 
