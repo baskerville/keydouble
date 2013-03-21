@@ -1,14 +1,21 @@
 ! keydouble configuration file
 !
-! natart_pairs: 65:255 36:254 23:253
+! natart_pairs: 66:255 23:254 50:253 62:252
 
-keycode 65 = Control_L
-keycode 255 = space
+remove Lock = Caps_Lock
 
-keycode 36 = Hyper_R
-keycode 254 = Return
+keycode 66 = Control_L
+keycode 255 = F3
 
-keycode 23 = Mode_switch
-keycode 253 = Tab
+keycode 23 = Alt_L
+keycode 254 = Tab
+
+keycode 50 = Shift_L
+keycode 253 = parenleft
+
+keycode 62 = Shift_R
+keycode 252 = parenright
+
 
 add control = Control_L
+add mod1 = Alt_L

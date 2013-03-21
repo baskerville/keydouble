@@ -21,7 +21,7 @@
 #include <X11/extensions/record.h>
 #include <X11/keysym.h>
 
-#define ARTIFICIAL_TIMEOUT 600
+#define ARTIFICIAL_TIMEOUT 300
 #define SLEEP_MICROSEC 100*1000
 #define MAX_CODE 256
 #define CODE_UNDEF -1
@@ -61,12 +61,26 @@ typedef union {
 void setup(void)
 {
     int event, error, major, minor;
-
+    /*
+      We're gonna fetch two display objects; one, we'll be stealing events
+      from, and the other, we'll be sending events to. This prevents an
+      infinite loop.
+    */
     if (!(ctldpy = XOpenDisplay(NULL)) || !(datdpy = XOpenDisplay(NULL)))
         die("cannot open display\n");
 
-    XSynchronize(ctldpy, true); /* don't remove this line */
+    /*
+      We have to synchronize the control display to ensure that the
+      events we *send* get sent immediately; because we're not doing
+      anything but sending key events, it should not result in a
+      significant reduction in speed.
+    */
+    XSynchronize(ctldpy, true);
 
+    /*
+       Now we have to fetch the XRecord context; some sanity checking,
+       first, then grab a context off of the 'from' display.
+    */
     if (!XTestQueryExtension(ctldpy, &event, &error, &major, &minor))
         die("the xtest extension is not loaded\n");
 
@@ -82,26 +96,36 @@ void setup(void)
 
     if (!(reccontext = XRecordCreateContext(datdpy, 0, &reccspec, 1, &recrange, 1)))
         die("could not create a record context");
-}
 
-void loop(void)
-{
+    /* Finally, start listening for events. */
     if (!XRecordEnableContextAsync(datdpy, reccontext, evtcallback, NULL))
         die("cannot enable record context\n");
+}
+
+bool done_anything;
+void loop(void)
+{
     while (running) {
+        if (!done_anything){
+            usleep(SLEEP_MICROSEC);
+        } else {
+            usleep(SLEEP_MICROSEC / 100);
+        }
+        done_anything = false;
         XRecordProcessReplies(datdpy);
-        usleep(SLEEP_MICROSEC);
     }
 }
 
 void evtcallback(XPointer priv, XRecordInterceptData *hook)
 {
+    done_anything = true;
     if (hook->category != XRecordFromServer) {
         XRecordFreeData(hook);
         return;
     }
 
     XRecordDatum *data = (XRecordDatum *) hook->data;
+
 
     static unsigned int numnat;
     static bool natdown[MAX_CODE], keycomb[MAX_CODE];
@@ -121,6 +145,7 @@ void evtcallback(XPointer priv, XRecordInterceptData *hook)
             for (i = 0; i < MAX_CODE; i++)
                 keycomb[i] = natdown[i];
         }
+
     } else if (evttype == KeyRelease) {
         /* a natural key was released */
         if (natart[code] != CODE_UNDEF) {
