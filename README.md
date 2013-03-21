@@ -4,7 +4,7 @@
 
 This little X utility enables the use of keys simultaneously as modifiers and ordinary keys,
 
-The original key behavior is maintained under simple key press/release circumstances; but when a key is chorded, it can act a s a modifier.
+The original key behavior is maintained under simple key press/release circumstances; but when a key is chorded, it can act as a modifier.
 
 E.g.: *left shift + b* produces *B*, but *left shift* tapped on its own might produce *parenleft*.
 
