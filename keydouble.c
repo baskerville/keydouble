@@ -61,12 +61,26 @@ typedef union {
 void setup(void)
 {
     int event, error, major, minor;
-
+    /*
+      We're gonna fetch two display objects; one, we'll be stealing events
+      from, and the other, we'll be sending events to. This prevents an
+      infinite loop.
+    */
     if (!(ctldpy = XOpenDisplay(NULL)) || !(datdpy = XOpenDisplay(NULL)))
         die("cannot open display\n");
 
-    XSynchronize(ctldpy, true); /* don't remove this line */
+    /*
+      We have to synchronize the control display to ensure that the
+      events we *send* get sent immediately; because we're not doing
+      anything but sending key events, it should not result in a
+      significant reduction in speed.
+    */
+    XSynchronize(ctldpy, true);
 
+    /*
+       Now we have to fetch the XRecord context; some sanity checking,
+       first, then grab a context off of the 'from' display.
+    */
     if (!XTestQueryExtension(ctldpy, &event, &error, &major, &minor))
         die("the xtest extension is not loaded\n");
 
@@ -82,12 +96,14 @@ void setup(void)
 
     if (!(reccontext = XRecordCreateContext(datdpy, 0, &reccspec, 1, &recrange, 1)))
         die("could not create a record context");
+
+    /* Finally, start listening for events. */
+    if (!XRecordEnableContextAsync(datdpy, reccontext, evtcallback, NULL))
+        die("cannot enable record context\n");
 }
 
 void loop(void)
 {
-    if (!XRecordEnableContextAsync(datdpy, reccontext, evtcallback, NULL))
-        die("cannot enable record context\n");
     while (running) {
         XRecordProcessReplies(datdpy);
         usleep(SLEEP_MICROSEC);
