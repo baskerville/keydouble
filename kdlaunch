@@ -15,9 +15,9 @@ natart_pairs=$(grep -i '^![[:space:]]*natart_pairs:' "$KEYDOUBLE_CONF" | sed 's/
 restore_map() {
 
     # If setxkbmap has no query option, change lyt to your local layout;
-    # e.g. "us", 'fr", etc.
-
+    # e.g. "us", "fr", etc.
     lyt=$(setxkbmap -query | grep -i '^layout:' | awk '{print $2}')
+
     if [ -n "$lyt" ] ; then
         setxkbmap -layout "$lyt"
     else

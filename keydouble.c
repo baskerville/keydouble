@@ -21,7 +21,7 @@
 #include <X11/extensions/record.h>
 #include <X11/keysym.h>
 
-#define ARTIFICIAL_TIMEOUT 300
+#define ARTIFICIAL_TIMEOUT 600
 #define SLEEP_MICROSEC 100*1000
 #define MAX_CODE 256
 #define CODE_UNDEF -1
@@ -105,8 +105,8 @@ void setup(void)
 void loop(void)
 {
     while (running) {
-        usleep(SLEEP_MICROSEC);
         XRecordProcessReplies(datdpy);
+        usleep(SLEEP_MICROSEC);
     }
 }
 
@@ -137,7 +137,6 @@ void evtcallback(XPointer priv, XRecordInterceptData *hook)
             for (i = 0; i < MAX_CODE; i++)
                 keycomb[i] = natdown[i];
         }
-
     } else if (evttype == KeyRelease) {
         /* a natural key was released */
         if (natart[code] != CODE_UNDEF) {

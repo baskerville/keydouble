@@ -51,7 +51,7 @@ The default keycode (called *natural*) of the original key is mapped to the modi
 The mapping is done by `xmodmap` and the *artificial* keycode generation by `keydouble`.
 
 
-### Troubleshooting.
+## Troubleshooting.
 
 ```Error!   Option "-query" not recognized```
 
