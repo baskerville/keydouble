@@ -102,30 +102,22 @@ void setup(void)
         die("cannot enable record context\n");
 }
 
-bool done_anything;
 void loop(void)
 {
     while (running) {
-        if (!done_anything){
-            usleep(SLEEP_MICROSEC);
-        } else {
-            usleep(SLEEP_MICROSEC / 100);
-        }
-        done_anything = false;
+        usleep(SLEEP_MICROSEC);
         XRecordProcessReplies(datdpy);
     }
 }
 
 void evtcallback(XPointer priv, XRecordInterceptData *hook)
 {
-    done_anything = true;
     if (hook->category != XRecordFromServer) {
         XRecordFreeData(hook);
         return;
     }
 
     XRecordDatum *data = (XRecordDatum *) hook->data;
-
 
     static unsigned int numnat;
     static bool natdown[MAX_CODE], keycomb[MAX_CODE];

@@ -1,11 +1,28 @@
-! keydouble configuration file
+! keydouble configuration file.
+!
+! 1. Use `xev` to discover the natural keycode fo the key you'd like to
+! alter.
+!
+! 2. Pick an unused keycode (working backwards from 255 is
+! recommended).
+!
+! 3. In natart pairs, add a pair `NATURAL_KEYCODE:UNUSED_KEYCODE`
+!
+! 4. Add two xmodmap commands: one mapping the natural keycode to the
+! modifier of your choice, and the other mapping the unused keycode to
+! the keysym you'd like to appear when you tap.
+!
+! 5. You may also need to add the keysym to the appropriate modifier
+! (i.e. `add control = Control_L`). See xmodmap's docs for details.
+!
+! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+! The following line SHOULD REMAIN COMMENTED. It'll still do it's job.
+! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
 ! natart_pairs: 66:255 23:254 50:253 62:252
 
-remove Lock = Caps_Lock
-
 keycode 66 = Control_L
-keycode 255 = F3
+keycode 255 = F18
 
 keycode 23 = Alt_L
 keycode 254 = Tab
@@ -16,6 +33,9 @@ keycode 253 = parenleft
 keycode 62 = Shift_R
 keycode 252 = parenright
 
+keycode 64 = Alt_L
 
 add control = Control_L
 add mod1 = Alt_L
+
+remove Lock = Caps_Lock
