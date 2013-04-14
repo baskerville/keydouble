@@ -2,6 +2,12 @@
 
 ---
 
+## Warning
+
+This is a quick hack and you should use [xcape](https://github.com/alols/xcape) instead.
+
+## Description
+
 This little X utility enables the use of keys simultaneously as modifiers and ordinary keys,
 
 The original key behavior is maintained under simple key press/release circumstances; but when a key is chorded, it can act as a modifier.
