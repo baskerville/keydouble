@@ -1,11 +1,3 @@
-/*
-
-   Keydouble
-
-   baskerville@lavabit.com
-
-*/
-
 #define _BSD_SOURCE
 
 #include <signal.h>
